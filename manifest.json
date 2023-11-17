@@ -1,0 +1,11 @@
+{
+    "domain": "salus_it500_plus",
+    "name": "Salus thermostat",
+    "version": "0.0.1",
+    "documentation": "https://github.com/mottwan/salus_it500_plus",
+    "issue_tracker": "https://github.com/mottwan/salus_it500_plus/issues",
+    "requirements": [],
+    "dependencies": [],
+    "codeowners": ["@mottwan"],
+    "iot_class": "cloud_polling"
+}  
