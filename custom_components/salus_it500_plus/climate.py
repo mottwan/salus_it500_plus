@@ -13,9 +13,12 @@ from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
-    SUPPORT_TARGET_TEMPERATURE,
     CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_OFF,
     CURRENT_HVAC_IDLE,
+    SUPPORT_PRESET_MODE,
+    SUPPORT_TARGET_TEMPERATURE
+
 )
 
 # Add new constants for additional features
@@ -42,12 +45,16 @@ __version__ = "0.0.1"
 
 _LOGGER = logging.getLogger(__name__)
 
+
 # ... [existing PLATFORM_SCHEMA definition] ...
 
 class SalusThermostat(ClimateEntity):
-    
+
     def __init__(self, email, password, device_id, second_heating_zone, water_heating):
         """Initialize the thermostat."""
+        self._online = None
+        self._target_temp = None
+        self._current_temp = None
         self._name = DEFAULT_NAME
         self._username = email
         self._password = password
@@ -76,9 +83,10 @@ class SalusThermostat(ClimateEntity):
 
     @property
     def preset_modes(self):
-        
+
         """Return a list of available preset modes."""
         return SUPPORT_PRESETS
+
     @property
     def name(self):
         """Return the name of the thermostat."""
@@ -139,14 +147,14 @@ class SalusThermostat(ClimateEntity):
 
         headers = {"content-type": "application/x-www-form-urlencoded"}
         if hvac_mode == HVAC_MODE_OFF:
-            payload = {"token": self._token, "devId": self._id, "auto": "1", "auto_setZ1": "1"}
+            payload = {"token": self._token, "devId": self._device_id, "auto": "1", "auto_setZ1": "1"}
             try:
                 if self._session.post(URL_SET_DATA, data=payload, headers=headers):
                     self._current_operation_mode = "OFF"
             except:
                 _LOGGER.error("Error Setting HVAC mode OFF.")
         elif hvac_mode == HVAC_MODE_HEAT:
-            payload = {"token": self._token, "devId": self._id, "auto": "0", "auto_setZ1": "1"}
+            payload = {"token": self._token, "devId": self._device_id, "auto": "0", "auto_setZ1": "1"}
             try:
                 if self._session.post(URL_SET_DATA, data=payload, headers=headers):
                     self._current_operation_mode = "ON"
@@ -193,12 +201,12 @@ class SalusThermostat(ClimateEntity):
         """Set the same schedule for all days."""
         # Implement the logic to set the same schedule for all days using Salus API
         # ...
-    
+
     def _set_5_2_schedule(self, schedule):
         """Set one schedule for weekdays and another for the weekend."""
         # Implement the logic to set a 5/2 schedule using Salus API
         # ...
-    
+
     def _set_individual_schedule(self, schedule):
         """Set individual schedules for each day."""
         # Implement the logic to set individual schedules for each day using Salus API
@@ -208,7 +216,7 @@ class SalusThermostat(ClimateEntity):
         """Override the current target temperature."""
         # Implement the logic to override target temperature using Salus API
         # ...
-        
+
     def set_frost_protection(self, enabled, temperature=None):
         """Enable or disable frost protection mode.
 
@@ -233,7 +241,7 @@ class SalusThermostat(ClimateEntity):
 
     def _set_temperature(self, temperature):
         """Set new target temperature, via URL commands."""
-        payload = {"token": self._token, "devId": self._id, "tempUnit": "0", "current_tempZ1_set": "1",
+        payload = {"token": self._token, "devId": self._device_id, "tempUnit": "0", "current_tempZ1_set": "1",
                    "current_tempZ1": temperature}
         headers = {"content-type": "application/x-www-form-urlencoded"}
         try:
@@ -263,7 +271,7 @@ class SalusThermostat(ClimateEntity):
         """Set the thermostat to the off preset."""
         # Set the temperature and other settings for the sleep preset
         # using the Salus API        
-    
+
     def get_token(self):
         """Get the Session Token of the Thermostat."""
         payload = {"IDemail": self._username, "password": self._password, "login": "Login", "keep_logged_in": "1"}
@@ -271,7 +279,7 @@ class SalusThermostat(ClimateEntity):
 
         try:
             self._session.post(URL_LOGIN, data=payload, headers=headers)
-            params = {"devId": self._id}
+            params = {"devId": self._device_id}
             getTkoken = self._session.get(URL_GET_TOKEN, params=params)
             result = re.search('<input id="token" type="hidden" value="(.*)" />', getTkoken.text)
             _LOGGER.info("Salusfy get_token OK")
@@ -282,7 +290,7 @@ class SalusThermostat(ClimateEntity):
     def _get_data(self):
         if self._token is None:
             self.get_token()
-        params = {"devId": self._id, "token": self._token, "&_": str(int(round(time.time() * 1000)))}
+        params = {"devId": self._device_id, "token": self._token, "&_": str(int(round(time.time() * 1000)))}
         try:
             r = self._session.get(url=URL_GET_DATA, params=params)
             try:

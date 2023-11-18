@@ -1,0 +1,4 @@
+homeassistant==2023.1.7
+home-assistant-bluetooth==1.10.4
+requests==2.31.0
+voluptuous==0.14.1
