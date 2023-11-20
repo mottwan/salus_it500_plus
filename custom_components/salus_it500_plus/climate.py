@@ -103,12 +103,12 @@ class SalusThermostat(ClimateEntity):
         return True
 
     @property
-    def min_temp(self):
+    def min_temperature(self):
         """Return the minimum temperature."""
         return MIN_TEMP
 
     @property
-    def max_temp(self):
+    def max_temperature(self):
         """Return the maximum temperature."""
         return MAX_TEMP
 
