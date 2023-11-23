@@ -1,6 +1,7 @@
 import voluptuous as vol
 from homeassistant import config_entries
-from .const import DOMAIN
+from .core.const import DOMAIN
+
 
 class SalusThermostatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -89,5 +90,3 @@ class SalusThermostatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required("add_another", default=False): bool
             })
         )
-
-    # Add additional steps if necessary
